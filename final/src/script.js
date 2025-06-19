@@ -1,6 +1,22 @@
 import * as THREE from 'three'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
 import gsap from 'gsap'
+import GUI from 'lil-gui'
+
+// Debug
+const gui = new GUI({
+    width:300,
+    title:'Nice Debug UI',
+    // closeFolders: true
+})
+gui.hide()
+window.addEventListener('keydown', (event) =>{
+    if(event.key == 'h'){
+        gui.show(gui._hidden)
+    }
+})
+const debugObject = {}
+
 
 /**
  * Base
@@ -14,10 +30,30 @@ const scene = new THREE.Scene()
 /**
  * Object
  */
+debugObject.color = '#a778d8'
 const geometry = new THREE.BoxGeometry(1, 1, 1, 2, 2, 2)
-const material = new THREE.MeshBasicMaterial({ color: '#ff0000' })
+const material = new THREE.MeshBasicMaterial({ color: debugObject.color, wireframe: true })
 const mesh = new THREE.Mesh(geometry, material)
 scene.add(mesh)
+const cubeTweks = gui.addFolder('CubeTweks')
+// cubeTweks.close()
+cubeTweks.add(mesh.position, 'y').min(-3).max(3).step(0.01).name('elevation')
+cubeTweks.add(mesh,'visible').name('visibility')
+cubeTweks.add(material,'wireframe')
+cubeTweks.addColor(debugObject,'color').onChange(()=>{
+    material.color.set(debugObject.color)
+})
+
+
+debugObject.spin = () =>{
+    gsap.to(mesh.rotation,{y: mesh.rotation.y + Math.PI * 2})
+}
+cubeTweks.add(debugObject, 'spin')
+debugObject.subdivision = 2
+cubeTweks.add(debugObject,'subdivision').min(1).max(20).step(1).onFinishChange(()=>{
+    mesh.geometry.dispose()
+    mesh.geometry = new THREE.BoxGeometry(1, 1, 1, debugObject.subdivision, debugObject.subdivision, debugObject.subdivision)
+})
 
 /**
  * Sizes
